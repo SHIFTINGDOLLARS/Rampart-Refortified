@@ -619,6 +619,12 @@ A fourth cannon-phase item: rotate cycles cannon → super cannon → balloon �
 (each only when its setting allows it and enough cannons are left; the buster costs 2).
 F12 → Game Rules → Special Cannons: 1 player only (default) / all games / never.
 
+I created this because I was tired of grunts in Endless mode. 
+This cannon shoots 5 cannon balls at once. 
+it can only fire on grunt-occupied land so that it doesn't expend the cannonball limit 
+unless it needs to.
+It's not broken, it just needs to meet certain conditions to actually fire.
+
 - **Placement** goes through the plain cannon path (`2FD6` sends items other than 1/2 to
   `2FEA`, which calls create_cannon `333E`). `2FEA` notes the item; at `336D` (entry
   filled, si = cannon) bit 7 of cannon byte +0F marks a buster (bit 0 is the balloon mark,
@@ -672,6 +678,9 @@ It isn't random: it is reset to 0 for a new game (`0EE3`, `1488`), +1 (max 2) wh
 single-player continue is taken (`6F8B`, "continue with more firepower") and when a
 multiplayer player is defeated and keeps playing (`71DD`); `5D9F` (ship code, not fully
 read) also sets it from ship state and rounds played.
+You generally get three lives in this game.
+Continuing with more firepower improves the cannon from:
+level 0 (banded cannons) level 1 (artillery cannons) and level 2 (muzzled artillery)
 
 ## 20. Release package (bring your own files), v9.0
 
