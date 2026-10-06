@@ -10,6 +10,7 @@ image offset). Data addresses are `DS:` offsets, where DS = image segment `0E4E`
 
 Confidence markers: **[verified]** = checked against the running game in the emulator;
 **[code]** = read from disassembly, not yet exercised; **[guess]** = a hypothesis.
+**Note from Shifting Dollars:** Claude code wrote this. It can't play the game. I will update this with any knowledge I have/discover, along with anything anyone else can confirm.
 
 ---------------------------------------------------------------------------------------------
 
