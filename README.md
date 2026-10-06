@@ -170,3 +170,6 @@ CREDITS
 Rampart: Atari Games (1990). DOS version: Bitmasters.
 Unprotected release: HAL9000 / I.N.C.
 Mod: Shifting Dollars.
+
+The disassembly of this game was done with Claude Code, who also wrote the NOTES.MD explaining how the game works better than I ever could.
+I hate outsourcing to AI too, but every feature and direction of this mod were all my inspired ideas from 100+ hours of playing this game.
