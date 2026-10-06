@@ -1,0 +1,82 @@
+# address  name  [comment]          (code segment 0, image offset == IP)
+0000 start                      set DS=SS=0E4E, parse "c" switch, init, run, exit
+004B init                       shrink DOS block, hook timer/keyboard, load config, sound
+0077 shutdown                   unhook interrupts, text mode
+0110 poll_controllers           read keyboard/joystick/mouse into per-controller state
+0238 main                       buffer segments, title sequence, enter game loop
+0279 draw_rle_tilemap           decode PFT-style RLE (w&8000 = literals, else run) and draw 40x25
+02D0 unpack_rle_tilemap         same RLE into tilemap buffer DS:106B (40x25 u16)
+0337 draw_tilemap_buffer        draw DS:106B
+035C load_pfm_grid              40x25 PFM bytes -> type grid 35BB / owner grid 3A29
+0380 set_cell_from_pfm          1-3 player land, 4 sea(5), 9 house(0C), A castle, B special, else shore(6)
+0433 hook_int8                  timer IRQ -> 04C2
+0457 unhook_int8
+0479 hook_int9                  keyboard IRQ -> 04E0
+04A0 unhook_int9
+04C2 int8_handler               32-bit tick counter DS:2252, chains to BIOS
+04E0 int9_handler               key table DS:2151[scancode]: press |= C0, release &= 7F
+051A clear_key_latches          clear bit 6 of every key
+0536 any_key_latched
+0556 wait_frame                 wait for vertical retrace start; ++frame counter DS:479A
+0570 wait_vretrace
+09B9 read_joystick_buttons
+09E8 lfsr_next                  DS:22CD = (x>>1) ^ (B400 if carry)
+09FB random                     ax = (lfsr * ax) >> 16  -> [0, ax)
+0A07 seed_rng                   from DOS time (cx+dx, never 0)
+0A20 game_loop                  options -> rounds (DS:2601) & cannon HP (DS:24CC), map select
+0B55 play_round                 select/home castle, cannon phase, battle, rebuild, scoring
+0E69 load_round_map             m{N}ppf.rsc PFM_n/PFT_n/PFC_n, level table DS:24CF
+0FB2 next_round
+0FCF compute_cannon_allowance   base = enclosed castles (home counts 2) + first-round bonus 1..4
+107F reset_hit_counters
+10A0 apply_pfc_shading          PFC low nibble -> owner grid bits 0-3
+1498 load_rsc_entry             dx=file name, bx=entry name, es:si=dest
+1520 rebuild_phase              timer DS:47AB[difficulty] = 25/20/18/15 timer-seconds + 3 grace
+16DE rebuild_player_update
+182A enclosure_step             time-sliced: 0x60 budget per frame
+184B enclosure_init             B = own & 30 -> DS:47B7, visited DS:4C25
+1879 enclosure_scan             find solid cell with empty west neighbour
+18C4 enclosure_trace
+18ED trace_step                 4-direction pivot rule, turn counter DS:509B
+1979 contour_done               negative winding -> fill_hole
+19C8 fill_hole
+19E6 fill_run                   fill east until marked boundary
+1AB2 on_cell_enclosed           wall retile; house capture during rebuild; 1P house bonus 100,150,...
+1C6E enclosure_run_full
+1C79 house_area_bonus           area thresholds 9,16,25..121 -> 100..1000 points
+1CAC castles_clear
+1CC6 castle_add                 castle list DS:50D6, 6 bytes: flags, state, x*8, y*8
+1D40 castles_enhanced_reset     ENHANCED game type only
+1D73 castles_clear_enclosed
+1DB2 count_cannon_castles       +1 per enclosed castle, +1 more for home castle
+1DF4 player_home_position
+1FCE player_struct              ax=player -> si = 231E + 69*ax
+2072 try_place_piece            piece table DS:513F, 9 bytes per (piece*4+rot); legal on types 0, 0C, 13
+2101 place_wall_cell            type = owner|1, own |= 10, retile 4 neighbours
+217A retile_wall                neighbour mask N=2 S=8 W=4 E=1
+26B7 play_sfx                   AIL far call 0D83:0C2F, table DS:5616
+26EA stop_sfx
+2919 age_rubble                 type 0D counts DS:3E97[cell]; cleared after 3 rebuilds
+2952 prune_dangling_walls       walls with <=1 wall neighbour are removed
+2A00 clear_territory            reset owner bits / enclosed flags before rebuild
+2CE0 cannon_phase               15 timer-seconds; ends early when all cannons placed
+3467 launch_cannonball          speed DS:5C75[skill] = 64/80/96 (1/64 px per frame)
+3580 next_ready_cannon          round-robin over 90 cannons (16 bytes each @ DS:56AB)
+35D8 alloc_ball                 40 balls x 19 bytes @ DS:5C9F
+35EC update_cannonballs         z += vz; vz -= 1; whistle sfx at apex; impact when z < 0
+366F ball_impact                dispatch on type: wall, ship, cannon, water, house, crater
+3758 hit_wall                   +1 wall-hit (+1 more if the wall had 3 neighbours)
+37CE hit_cannon                 cannon HP DS:24CC (2/5/8/11, 1P 12); +1 cannon-hit
+380F hit_ship
+3C2C isqrt_distance             exact integer sqrt(dx^2+dy^2)
+4314 battle_phase               READY (1s+40 ticks), AIM (1s+20 ticks), FIRE 11 timer-seconds
+45E3 player_fire
+4616 player_aim
+46D2 timer_set                  ah = seconds, al = ticks; 1 tick per 70 Hz frame, a timer-second = 61 frames (~0.87 s)
+46E8 timer_tick
+479C home_castle_select         14 timer-seconds
+6994 score_tally                battle: (cannon/ship hits*8 + wall hits)*2; territory: cells; castles: table DS:6957
+B53C set_mode13
+B59C set_palette                256 entries from ds:si
+B5BF set_palette_range
+C3D8 title_sequence             attract script at DS:EDAF; any key exits
